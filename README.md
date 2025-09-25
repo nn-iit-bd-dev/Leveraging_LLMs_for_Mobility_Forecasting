@@ -52,16 +52,6 @@ We compared multiple approaches:
 
 ---
 
-## 📊 Evaluation
-Metrics used:  
-- MAE (Mean Absolute Error)  
-- RMSE (Root Mean Squared Error)
-- RMSLE (Root Mean Squared Logarithmic Error)
-
-
-Outputs include per-POI error analysis, top-10 best/worst cases, and visualizations.  
-
----
 
 ## 📂 Repository Structure
 ```
@@ -183,7 +173,16 @@ PREDICTION: <number>
 ```
 
 ---
+## 📊 Evaluation
+Metrics used:  
+- MAE (Mean Absolute Error)  
+- RMSE (Root Mean Squared Error)
+- RMSLE (Root Mean Squared Logarithmic Error)
 
+
+Outputs include per-POI error analysis, top-10 best/worst cases, and visualizations.  
+
+---
 
 ---
 
@@ -257,7 +256,29 @@ Below are examples of the **10 best** and **10 worst** model predictions for Orl
 | 9    | zzw-222@8fy-8k6-9xq   | Raptor Encounter                             | Amusement Parks and Arcades                 | 208         | 81        | 127        |
 | 10   | zzy-223@8fy-7z9-rff   | Orlando Intl Airport – Airside 2             | Support Activities for Air Transportation   | 580         | 684       | 104        |
 
+# Category-Wise Performance
 
+This section summarizes forecasting performance across different business categories of Orlando.  
+We report the number of POIs in each category (**Count**) and the average forecasting error (**Mean Absolute Error, MAE**).  
+
+---
+
+## Performance Table
+
+| **Category** | **Count** | **Mean AE** |
+|--------------|-----------|-------------|
+| Amusement Parks and Arcades | 40 | 39.23 |
+| Warehousing and Storage | 3 | 13.67 |
+| Lessors of Real Estate | 55 | 10.78 |
+| Motion Picture and Video Industries | 3 | 7.67 |
+| General Merchandise Stores (incl. Warehouse Clubs & Supercenters) | 33 | 7.46 |
+| Promoters of Performing Arts, Sports, and Similar Events | 26 | 6.89 |
+| Office Supplies, Stationery, and Gift Stores | 26 | 6.46 |
+| Colleges, Universities, and Professional Schools | 9 | 6.44 |
+| Traveler Accommodation | 86 | 5.43 |
+| General Medical and Surgical Hospitals | 17 | 5.12 |
+| Gasoline Stations | 48 | 4.35 |
+| Other Amusement and Recreation Industries | 120 | 3.23 |
 
 ## ✨ Contributions
 - Built a full **data preparation pipeline** for hurricane-aware POI visit forecasting.  
