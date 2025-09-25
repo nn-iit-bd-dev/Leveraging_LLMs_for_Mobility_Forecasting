@@ -67,13 +67,15 @@ Outputs include per-POI error analysis, top-10 best/worst cases, and visualizati
 ```
 ## Project Structure
 
-├── arima_models/          # Scripts and outputs for ARIMA-based forecasting
-├── dl/                    # Deep learning models (RNN, LSTM, GRU)
-├── llms/                  # Large Language Model baselines
-├── prophet_model/         # Prophet forecasting scripts and results
+├── arima_models/          # Scripts for ARIMA-based forecasting
+├── dl/                    # Scripts for deep learning models (RNN, LSTM, GRU)
+├── llms/                  # Scripts for Large Language Model baselines
+├── prophet_model/         # Scripts for Prophet forecasting
 ├── rag/                   # Retrieval-Augmented Generation (RAG) forecasting
-├── tuned_llm/             # Fine-tuned LLM implementations and experiments
+├── tuned_llm/             # Fine-tuned LLM implementations
+├── utilities/             # Helper functions (e.g., data loaders, metrics, plotting, I/O utils)
 └── README.md              # Project documentation
+
 
 ```
 
