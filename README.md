@@ -174,7 +174,36 @@ Metrics used:
 Outputs include per-POI error analysis, top-10 best/worst cases, and visualizations.  
 
 ---
+# Implementation Details
 
+For efficiency, we used **quantized inference** with **4-bit NF4** via the `bitsandbytes` library.  
+Tokenization employed the model’s **SentencePiece vocabulary**, with the **EOS token** used for padding.  
+
+---
+
+## Data Preparation
+- Dataset split into **70/10/20** for **training / validation / testing**.  
+
+---
+
+## Fine-Tuning
+We applied **PEFT with LoRA** adapters.  
+
+- **Adapter locations**: attention and feed-forward projections  
+  - $q_{\mathrm{proj}}, k_{\mathrm{proj}}, v_{\mathrm{proj}}, o_{\mathrm{proj}}, \mathrm{gate}_{\mathrm{proj}}, \mathrm{up}_{\mathrm{proj}}, \mathrm{down}_{\mathrm{proj}}$  
+- **Hyperparameters**:  
+  - Rank = 16  
+  - $\alpha = 32$  
+  - Dropout = 0.1  
+
+This reduced the number of trainable parameters to a **small fraction of the base model** while preserving representational capacity.
+
+---
+
+## Training
+- Epochs: **3**  
+- Evaluation: run every **100 steps**  
+- Best model: selected by **lowest validation loss** 
 ---
 
 ##  How to Run
