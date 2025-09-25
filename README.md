@@ -1,8 +1,13 @@
 # Hurricane Ian POI Visit Forecasting (D14 Task)
 
-## Abstract
-Natural disasters like hurricanes cause abrupt and severe disruptions in human mobility and business activity, posing significant challenges for short-term forecasting models that support disaster response and resource allocation. Traditional statistical and deep learning approaches often fail to adapt to the context-sensitive shifts
-in visitation patterns during such events. To address these limitations, we introduce a disaster-aware mobility prediction framework that integrates large language models (LLMs) with retrieval-augmented generation (RAG). The framework uses prompting to seamlessly integrate high-resolution point-of-interest (POI)-level mobility data with geospatial contextual signals, such as evacuation orders. It also employs parameter-efficient fine-tuning to create LLMs tailored specifically for mobility forecasting tasks during disasters. Experimental results using mobility data during Hurricane Ian in four Florida cities show that the proposed LLM-based framework consistently outperforms traditional methods in most scenarios, indicating its strong ability to comprehend disrupted mobility patterns. These findings highlight the potential of integrating structured mobility data with contextual language comprehension to foster more resilient and adaptable forecasts in disaster situations. 
+## 📑 Abstract
+Natural disasters like hurricanes cause abrupt and severe disruptions in human mobility and business activity, posing significant challenges for short-term forecasting models that support disaster response and resource allocation. 
+
+Traditional statistical and deep learning approaches often fail to adapt to the context-sensitive shifts in visitation patterns during such events. To address these limitations, we introduce a disaster-aware mobility prediction framework that integrates **large language models (LLMs)** with **retrieval-augmented generation (RAG)**. 
+
+The framework uses prompting to seamlessly integrate high-resolution **point-of-interest (POI)-level mobility data** with **geospatial contextual signals**, such as evacuation orders. It also employs **parameter-efficient fine-tuning** to create LLMs tailored specifically for mobility forecasting tasks during disasters. 
+
+Experimental results using mobility data during Hurricane Ian in four Florida cities show that the proposed LLM-based framework consistently outperforms traditional methods in most scenarios, indicating its strong ability to comprehend disrupted mobility patterns. These findings highlight the potential of integrating structured mobility data with contextual language comprehension to foster more resilient and adaptable forecasts in disaster situations. 
 
 ---
 
@@ -12,158 +17,76 @@ in visitation patterns during such events. To address these limitations, we intr
 - **POI metadata:** placekey, city, location name, top category, latitude, longitude  
 - **Temporal windows:** Before, during, Hurricane Ian landfall  
 - **Forecasting setup:**  
-  - Input sequence:  
-    \\[
-    v^p_{k-n+1:k-1} = [v^p_{k-13}, \\dots, v^p_{k-1}]
-    \\]  
-  - Forecast target:  
-    \\[
-    v^p_k \\quad (n=14)
-    \\]
-
+  - **Input sequence:**  
+    \[ v^p_{k-n+1:k-1} = [v^p_{k-13}, \dots, v^p_{k-1}] \]  
+  - **Forecast target:**  
+    \[ v^p_k \quad (n=14) \]
 
 ---
 
-
 ## 📂 Repository Structure
 ```
-## Project Structure
-
 ├── arima_models/          # Scripts for ARIMA-based forecasting
 ├── dl/                    # Scripts for deep learning models (RNN, LSTM, GRU)
 ├── llms/                  # Scripts for Large Language Model baselines
 ├── prophet_model/         # Scripts for Prophet forecasting
 ├── rag/                   # Retrieval-Augmented Generation (RAG) forecasting
 ├── tuned_llm/             # Fine-tuned LLM implementations
-├── utilities/             # Helper functions (e.g., data loaders, metrics, plotting, I/O utils)
+├── utilities/             # Helper functions (data loaders, metrics, plotting, I/O utils)
 └── README.md              # Project documentation
-
-
----
-```
-
-## Full Prompt Format for LLM Forecasting
-
-This document describes how each training or inference instance is converted into a structured **prompt** and fed into the LLM.  
-
---- 
-
-# Prompt Generation Functions
-
-This document describes the functions used to generate training and inference prompts for the forecasting model.
-
----
-
-## 1. `create_rag_training_prompt(row)`
-
-This function builds a **training prompt** that includes the ground-truth label (`y_true_d14`) for supervised fine-tuning.
-
-### Inputs
-A dictionary-like row from the dataset containing:
-- Metadata (`location_name`, `top_category`, `city`, `series_start_date`, `landfall_date`, `target_date_d14`)
-- Visit history (`prev_13_values`)
-- Evacuation info (`rag_active`, `evacuation_severity`, `evacuation_days_since`)
-- Ground truth (`y_true_d14`)
-
-### Logic
-1. Construct a base instruction and metadata block.  
-2. If `rag_active == True`, add an **evacuation context line**:  
-   - `"MANDATORY"` if `evacuation_severity >= 3`  
-   - `"Voluntary"` otherwise  
-   - Days since order taken from `evacuation_days_since`  
-3. Append 13 daily visit counts.  
-4. Append the **prediction with ground truth** (e.g., `PREDICTION: 6.0`).  
-
-### Example Output (with RAG)
-```
-You are an expert forecaster. Given 13 daily visit counts and evacuation context, predict day 14. 
-Reply ONLY: 'PREDICTION: <number>'.
-Location: Gr8Physiques Fitness Solutions
-Category: Other Amusement and Recreation Industries
-City: Tampa
-SeriesStart: 2022-09-19
-Landfall: 2022-09-28
-TargetDate: 2022-10-02
-Evacuation Context: MANDATORY evacuation active (5 days since effective)
-Visits(1-13): 11.0, 5.0, 9.0, 6.0, 5.0, 7.0, 3.0, 3.0, 4.0, 0.0, 0.0, 13.0, 6.0
-PREDICTION: 6.0
 ```
 
 ---
 
-## 2. `create_rag_inference_prompt(row)`
+## 📝 Full Prompt Format for LLM Forecasting
 
-This function builds an **inference prompt** where the model must generate the prediction. No ground truth is shown.
+This section describes how each training or inference instance is converted into a structured **prompt** and fed into the LLM.  
 
-### Inputs
-Same as above, except `y_true_d14` is not appended.  
+### 1. Training Prompt
+Includes the **ground-truth label (`y_true_d14`)** for supervised fine-tuning.  
 
-### Logic
-1. Construct base instruction and metadata.  
-2. Conditionally add evacuation context (same rules as training).  
-3. Append 13 daily visits.  
-4. End with a blank `PREDICTION:` for the model to complete.  
+### 2. Inference Prompt
+Model must generate the prediction. No ground truth is shown.  
 
-### Example Output (with RAG)
-```
-You are an expert forecaster. Given 13 daily visit counts and evacuation context, predict day 14. 
-Reply ONLY: 'PREDICTION: <number>'.
-Location: Gr8Physiques Fitness Solutions
-Category: Other Amusement and Recreation Industries
-City: Tampa
-SeriesStart: 2022-09-19
-Landfall: 2022-09-28
-TargetDate: 2022-10-02
-Evacuation Context: MANDATORY evacuation active (5 days since effective)
-Visits(1-13): 11.0, 5.0, 9.0, 6.0, 5.0, 7.0, 3.0, 3.0, 4.0, 0.0, 0.0, 13.0, 6.0
-PREDICTION:
-```
+---
+
+## ⚙️ Prompt Generation Functions
+
+### `create_rag_training_prompt(row)`
+- Builds a **training prompt** with ground truth.  
+- Adds evacuation context when `rag_active == True`.  
+- **Mandatory** if `evacuation_severity >= 3`.  
+
+### `create_rag_inference_prompt(row)`
+- Builds an **inference prompt** without ground truth.  
+- Same evacuation rules as training.  
 
 ---
 
 ## 📊 Evaluation
-Metrics used:  
+**Metrics used:**  
 - MAE (Mean Absolute Error)  
-- RMSE (Root Mean Squared Error)
-- RMSLE (Root Mean Squared Logarithmic Error)
+- RMSE (Root Mean Squared Error)  
+- RMSLE (Root Mean Squared Logarithmic Error)  
 
 Outputs include per-POI error analysis, top-10 best/worst cases, and visualizations.  
 
 ---
-# Implementation Details
 
-For efficiency, we used **quantized inference** with **4-bit NF4** via the `bitsandbytes` library.  
-Tokenization employed the model’s **SentencePiece vocabulary**, with the **EOS token** used for padding.  
+## 🛠 Implementation Details
 
----
-
-## Data Preparation
-- Dataset split into **70/10/20** for **training / validation / testing**.  
-
----
-
-## Fine-Tuning
-We applied **PEFT with LoRA** adapters.  
-
-- **Adapter locations**: attention and feed-forward projections  
-  - $q_{\mathrm{proj}}, k_{\mathrm{proj}}, v_{\mathrm{proj}}, o_{\mathrm{proj}}, \mathrm{gate}_{\mathrm{proj}}, \mathrm{up}_{\mathrm{proj}}, \mathrm{down}_{\mathrm{proj}}$  
-- **Hyperparameters**:  
-  - Rank = 16  
-  - $\alpha = 32$  
-  - Dropout = 0.1  
-
-This reduced the number of trainable parameters to a **small fraction of the base model** while preserving representational capacity.
+- **Quantized inference** with 4-bit NF4 via `bitsandbytes`.  
+- Tokenization: model’s **SentencePiece vocabulary**, with EOS as padding.  
+- **Data split:** 70/10/20 for training/validation/test.  
+- **Fine-tuning:** LoRA adapters on attention & feed-forward projections.  
+  - Rank = 16, α = 32, Dropout = 0.1  
+- **Training:** 3 epochs, evaluation every 100 steps.  
+- **Best model** selected by lowest validation loss.  
 
 ---
 
-## Training
-- Epochs: **3**  
-- Evaluation: run every **100 steps**  
-- Best model: selected by **lowest validation loss** 
----
-
-##  How to Run
-1. Prepare train/test JSONL datasets (per city or multi-city).  
+## 🚀 How to Run
+1. Prepare train/test JSONL datasets.  
 2. Run classical/deep baselines:  
    ```bash
    python arima_tampa_14.py --input ts_daily_panel/tampa_daily_panel.parquet --target d14
@@ -175,8 +98,7 @@ This reduced the number of trainable parameters to a **small fraction of the bas
 
 ---
 
-
-### 📈 Results: Mistral Variants Across Cities
+## 📈 Results: Mistral Variants Across Cities
 
 | City       | Model                | MAE    | RMSE    | RMSLE |
 |------------|----------------------|--------|---------|-------|
@@ -197,49 +119,44 @@ This reduced the number of trainable parameters to a **small fraction of the bas
 |            | Mistral + LoRA       | 2.50   | 7.02    | 0.78 |
 |            | **Mistral + LoRA + RAG** | **2.16** | **5.01**  | **0.77** |
 
+---
 
-## Orlando – Sample Predictions: Our Framework
+## 🌆 Orlando – Sample Predictions (Our Framework)
 
-Below are examples of the **10 best** and **10 worst** model predictions for Orlando POIs.  
-- *Best cases* are low-traffic POIs (stable, easy to predict).  
-- *Worst cases* are high-volume, event-driven POIs (airports, theme parks, tourist restaurants).  
+- **Best cases:** low-traffic POIs (stable, easy to predict).  
+- **Worst cases:** high-volume, event-driven POIs (airports, theme parks, tourist restaurants).  
 
 ### 🔹 10 Best Predictions
-| Rank | Placekey              | Location Name                                | Category                                   | True Visits | Predicted | Abs. Error |
-|------|-----------------------|----------------------------------------------|--------------------------------------------|-------------|-----------|------------|
-| 1    | 223-222@8fy-7x8-wkz   | Orlando Auto Mall                            | Automobile Dealers                          | 0           | 0         | 0          |
-| 2    | 223-222@8fy-7yv-z9f   | Dsign Factory                                | Printing & Related Support Activities       | 0           | 0         | 0          |
-| 3    | 22y-222@8fy-7wz-m8v   | Osceola Gynecology                           | Offices of Physicians                       | 0           | 0         | 0          |
-| 4    | 222-223@8fy-7zy-rzf   | V & N Complete Auto Repair                   | Automotive Repair and Maintenance           | 0           | 0         | 0          |
-| 5    | zzy-222@8fy-8mg-cdv   | Cam Miller Realty                            | Real Estate Agents and Brokers              | 0           | 0         | 0          |
-| 6    | 222-222@8fy-82q-qfz   | Adolescent Substance Abuse Program           | Elementary & Secondary Schools              | 0           | 0         | 0          |
-| 7    | 222-222@8fy-8kf-z4v   | Sofrito Latin Cafe                           | Restaurants and Other Eating Places         | 4           | 4         | 0          |
-| 8    | 225-225@8fy-8n3-xt9   | AdventHealth Medical Group Surgery Lake Nona | Offices of Physicians                       | 0           | 0         | 0          |
-| 9    | zzy-229@8fy-8bj-835   | Bright Light Paper                           | Florists                                    | 5           | 5         | 0          |
-| 10   | 229-223@8fy-8bv-djv   | Flying Window Tinting                        | Building Finishing Contractors              | 0           | 0         | 0          |
+| Rank | Placekey            | Location Name                                | Category                                   | True Visits | Predicted | Abs. Error |
+|------|---------------------|----------------------------------------------|--------------------------------------------|-------------|-----------|------------|
+| 1    | 223-222@8fy-7x8-wkz | Orlando Auto Mall                            | Automobile Dealers                          | 0           | 0         | 0          |
+| 2    | 223-222@8fy-7yv-z9f | Dsign Factory                                | Printing & Related Support Activities       | 0           | 0         | 0          |
+| 3    | 22y-222@8fy-7wz-m8v | Osceola Gynecology                           | Offices of Physicians                       | 0           | 0         | 0          |
+| 4    | 222-223@8fy-7zy-rzf | V & N Complete Auto Repair                   | Automotive Repair and Maintenance           | 0           | 0         | 0          |
+| 5    | zzy-222@8fy-8mg-cdv | Cam Miller Realty                            | Real Estate Agents and Brokers              | 0           | 0         | 0          |
+| 6    | 222-222@8fy-82q-qfz | Adolescent Substance Abuse Program           | Elementary & Secondary Schools              | 0           | 0         | 0          |
+| 7    | 222-222@8fy-8kf-z4v | Sofrito Latin Cafe                           | Restaurants and Other Eating Places         | 4           | 4         | 0          |
+| 8    | 225-225@8fy-8n3-xt9 | AdventHealth Medical Group Surgery Lake Nona | Offices of Physicians                       | 0           | 0         | 0          |
+| 9    | zzy-229@8fy-8bj-835 | Bright Light Paper                           | Florists                                    | 5           | 5         | 0          |
+| 10   | 229-223@8fy-8bv-djv | Flying Window Tinting                        | Building Finishing Contractors              | 0           | 0         | 0          |
 
 ### 🔹 10 Worst Predictions
-| Rank | Placekey              | Location Name                                | Category                                   | True Visits | Predicted | Abs. Error |
-|------|-----------------------|----------------------------------------------|--------------------------------------------|-------------|-----------|------------|
-| 1    | 225-22w@8fy-7z9-2tv   | Orlando International Airport                | Support Activities for Air Transportation   | 5808        | 6544      | 736        |
-| 2    | zzw-22r@8fy-8jw-qcq   | Hagrid's Magical Creatures Motorbike Ride    | Amusement Parks and Arcades                 | 398         | 16        | 382        |
-| 3    | zzy-22c@8fy-d6k-bkz   | Woody's Lunch Box                            | Amusement Parks and Arcades                 | 318         | 40        | 278        |
-| 4    | zzy-22q@8fy-8m2-k9f   | Big Thunder Mountain Railroad                | Amusement Parks and Arcades                 | 359         | 97        | 262        |
-| 5    | zzw-223@8fy-8kn-j35   | Disney Springs                               | Lessors of Real Estate                      | 3490        | 3704      | 214        |
-| 6    | 222-235@8fy-8jx-dn5   | The Hello Kitty Shop                         | Book Stores and News Dealers                | 178         | 0         | 178        |
-| 7    | zzy-222@8fy-83t-fvf   | Dunkin'                                      | Restaurants and Other Eating Places         | 179         | 1         | 178        |
-| 8    | zzw-22j@8fy-8jw-qcq   | The Amazing Adventures of Spider-Man         | Amusement Parks and Arcades                 | 181         | 10        | 171        |
-| 9    | zzw-222@8fy-8k6-9xq   | Raptor Encounter                             | Amusement Parks and Arcades                 | 208         | 81        | 127        |
-| 10   | zzy-223@8fy-7z9-rff   | Orlando Intl Airport – Airside 2             | Support Activities for Air Transportation   | 580         | 684       | 104        |
-
-# Category-Wise Performance
-
-This section summarizes forecasting performance across different business categories of Orlando.  
-We report the number of POIs in each category (**Count**) and the average forecasting error (**Mean Absolute Error, MAE**).  
+| Rank | Placekey            | Location Name                                | Category                                   | True Visits | Predicted | Abs. Error |
+|------|---------------------|----------------------------------------------|--------------------------------------------|-------------|-----------|------------|
+| 1    | 225-22w@8fy-7z9-2tv | Orlando International Airport                | Support Activities for Air Transportation   | 5808        | 6544      | 736        |
+| 2    | zzw-22r@8fy-8jw-qcq | Hagrid's Magical Creatures Motorbike Ride    | Amusement Parks and Arcades                 | 398         | 16        | 382        |
+| 3    | zzy-22c@8fy-d6k-bkz | Woody's Lunch Box                            | Amusement Parks and Arcades                 | 318         | 40        | 278        |
+| 4    | zzy-22q@8fy-8m2-k9f | Big Thunder Mountain Railroad                | Amusement Parks and Arcades                 | 359         | 97        | 262        |
+| 5    | zzw-223@8fy-8kn-j35 | Disney Springs                               | Lessors of Real Estate                      | 3490        | 3704      | 214        |
+| 6    | 222-235@8fy-8jx-dn5 | The Hello Kitty Shop                         | Book Stores and News Dealers                | 178         | 0         | 178        |
+| 7    | zzy-222@8fy-83t-fvf | Dunkin'                                      | Restaurants and Other Eating Places         | 179         | 1         | 178        |
+| 8    | zzw-22j@8fy-8jw-qcq | The Amazing Adventures of Spider-Man         | Amusement Parks and Arcades                 | 181         | 10        | 171        |
+| 9    | zzw-222@8fy-8k6-9xq | Raptor Encounter                             | Amusement Parks and Arcades                 | 208         | 81        | 127        |
+| 10   | zzy-223@8fy-7z9-rff | Orlando Intl Airport – Airside 2             | Support Activities for Air Transportation   | 580         | 684       | 104        |
 
 ---
 
-## Performance Table
+## 📊 Category-Wise Performance (Orlando)
 
 | **Category** | **Count** | **Mean AE** |
 |--------------|-----------|-------------|
@@ -256,12 +173,13 @@ We report the number of POIs in each category (**Count**) and the average foreca
 | Gasoline Stations | 48 | 4.35 |
 | Other Amusement and Recreation Industries | 120 | 3.23 |
 
-## ✨ Contributions
-This study presents the following contributions.
---We design a novel LLM-based forecasting framework that integrates structured mobility sequences with external disaster-specific context.
--- We evaluate our framework using mobility data in Florida during Hurricane Ian, benchmarking against statistical (ARIMA and Prophet) and deep learning (RNN, LSTM, and GRU) baselines, and demonstrate improved performance in capturing disrupted visitation patterns.
-
 ---
 
+## ✨ Contributions
 
-```
+This study presents the following contributions:
+
+- We design a novel **LLM-based forecasting framework** that integrates structured mobility sequences with external disaster-specific context.  
+- We evaluate our framework using mobility data in Florida during Hurricane Ian, benchmarking against statistical (ARIMA and Prophet) and deep learning (RNN, LSTM, and GRU) baselines, and demonstrate improved performance in capturing disrupted visitation patterns.  
+
+---
