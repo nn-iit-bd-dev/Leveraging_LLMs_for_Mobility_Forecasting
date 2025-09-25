@@ -76,94 +76,130 @@ This document describes how each training or inference instance is converted int
 
 ---
 
-## Prompt Structure
+# Sample Data Instance
 
-Each prompt has **five components**:
-
-1. **Instruction Header**  
-   Fixed instruction enforcing the forecasting task and restricting output format:
-   ```text
-   You are an expert forecaster. Given 13 daily visit counts and evacuation context, predict day 14. 
-   Reply ONLY: 'PREDICTION: <number>'.
-   ```
-
-2. **Metadata Fields**  
-   Provide POI (Point of Interest) and temporal details:
-   ```text
-   Location: <location_name>
-   Category: <top_category>
-   City: <city>
-   SeriesStart: <series_start_date>
-   Landfall: <landfall_date>
-   TargetDate: <target_date_d14>
-   ```
-
-3. **Optional Evacuation Context**  
-   Added only when `rag_active == True`:
-   ```text
-   Evacuation Context: <MANDATORY|Voluntary> evacuation active (<days_since> days since effective)
-   ```
-
-4. **Observed Visits**  
-   A 13-day numeric sequence:
-   ```text
-   Visits(1-13): [v1, v2, …, v13]
-   ```
-
-5. **Answer Cue**  
-   Ensures the model outputs only the prediction:
-   ```text
-   PREDICTION:
-   ```
+This example illustrates a single **train/test record** in the hurricane mobility forecasting dataset.
 
 ---
 
-## Example A — With RAG (Evacuation Context)
+## Metadata
+- **Placekey**: `zzw-226@8dj-jy9-x89`  
+- **City**: Tampa  
+- **Location Name**: Gr8Physiques Fitness Solutions  
+- **Top Category**: Other Amusement and Recreation Industries  
+- **Latitude**: 28.004637  
+- **Longitude**: -82.59652  
 
-```text
+---
+
+## Temporal Information
+- **Series Start Date**: 2022-09-19  
+- **Landfall Date**: 2022-09-28  
+- **Target Date (Day 14)**: 2022-10-02  
+- **Actual Target Date**: 2022-10-02  
+- **Time Periods Used**: after; before; landfall  
+- **Target Days After Landfall**: 4  
+
+---
+
+## Input Data (13-day History)
+`prev_13_values` =  
+```
+[11.0, 5.0, 9.0, 6.0, 5.0, 7.0, 3.0, 3.0, 4.0, 0.0, 0.0, 13.0, 6.0]
+```
+
+---
+
+## Output Data (Ground Truth)
+- **y_true_d14**: 6.0  
+
+---
+
+## RAG / Evacuation Context
+- **FIPS County Code**: 12057  
+- **County Name**: Hillsborough  
+- **Evacuation Severity**: 3 (MANDATORY evacuation)  
+- **Evacuation Days Since**: 5  
+- **RAG Active**: true  
+
+# Prompt Generation Functions
+
+This document describes the functions used to generate training and inference prompts for the forecasting model.
+
+---
+
+## 1. `create_rag_training_prompt(row)`
+
+This function builds a **training prompt** that includes the ground-truth label (`y_true_d14`) for supervised fine-tuning.
+
+### Inputs
+A dictionary-like row from the dataset containing:
+- Metadata (`location_name`, `top_category`, `city`, `series_start_date`, `landfall_date`, `target_date_d14`)
+- Visit history (`prev_13_values`)
+- Evacuation info (`rag_active`, `evacuation_severity`, `evacuation_days_since`)
+- Ground truth (`y_true_d14`)
+
+### Logic
+1. Construct a base instruction and metadata block.  
+2. If `rag_active == True`, add an **evacuation context line**:  
+   - `"MANDATORY"` if `evacuation_severity >= 3`  
+   - `"Voluntary"` otherwise  
+   - Days since order taken from `evacuation_days_since`  
+3. Append 13 daily visit counts.  
+4. Append the **prediction with ground truth** (e.g., `PREDICTION: 6.0`).  
+
+### Example Output (with RAG)
+```
 You are an expert forecaster. Given 13 daily visit counts and evacuation context, predict day 14. 
 Reply ONLY: 'PREDICTION: <number>'.
-Location: Walmart Supercenter
-Category: Retail
+Location: Gr8Physiques Fitness Solutions
+Category: Other Amusement and Recreation Industries
 City: Tampa
-SeriesStart: 2022-09-15
+SeriesStart: 2022-09-19
 Landfall: 2022-09-28
-TargetDate: 2022-09-28
+TargetDate: 2022-10-02
 Evacuation Context: MANDATORY evacuation active (5 days since effective)
-Visits(1-13): [120, 135, 150, 160, 140, 100, 80, 70, 60, 55, 65, 75, 85]
-PREDICTION:
+Visits(1-13): 11.0, 5.0, 9.0, 6.0, 5.0, 7.0, 3.0, 3.0, 4.0, 0.0, 0.0, 13.0, 6.0
+PREDICTION: 6.0
 ```
 
 ---
 
-## Example B — Without RAG (Pure Numeric)
+## 2. `create_rag_inference_prompt(row)`
 
-```text
+This function builds an **inference prompt** where the model must generate the prediction. No ground truth is shown.
+
+### Inputs
+Same as above, except `y_true_d14` is not appended.  
+
+### Logic
+1. Construct base instruction and metadata.  
+2. Conditionally add evacuation context (same rules as training).  
+3. Append 13 daily visits.  
+4. End with a blank `PREDICTION:` for the model to complete.  
+
+### Example Output (with RAG)
+```
 You are an expert forecaster. Given 13 daily visit counts and evacuation context, predict day 14. 
 Reply ONLY: 'PREDICTION: <number>'.
-Location: Starbucks
-Category: Food & Beverage
-City: Orlando
-SeriesStart: 2022-09-10
+Location: Gr8Physiques Fitness Solutions
+Category: Other Amusement and Recreation Industries
+City: Tampa
+SeriesStart: 2022-09-19
 Landfall: 2022-09-28
-TargetDate: 2022-09-24
-Visits(1-13): [200, 210, 220, 215, 205, 190, 180, 170, 160, 165, 170, 175, 180]
+TargetDate: 2022-10-02
+Evacuation Context: MANDATORY evacuation active (5 days since effective)
+Visits(1-13): 11.0, 5.0, 9.0, 6.0, 5.0, 7.0, 3.0, 3.0, 4.0, 0.0, 0.0, 13.0, 6.0
 PREDICTION:
 ```
 
 ---
 
-## Feeding the Prompt into the LLM
-
-```
-
-The LLM responds strictly in the format:
-
-```text
-PREDICTION: <number>
-```
-
----
+## Key Notes
+- `rag_active == True` controls whether evacuation context is inserted.  
+- **Mandatory orders** are recognized when `evacuation_severity >= 3`.  
+- Training prompts include the **answer**, inference prompts do not.  
+- Visit sequences are always shown as **13 comma-separated floats**.  
 ## 📊 Evaluation
 Metrics used:  
 - MAE (Mean Absolute Error)  
