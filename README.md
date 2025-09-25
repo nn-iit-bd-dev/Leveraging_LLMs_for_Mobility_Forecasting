@@ -103,8 +103,8 @@ python llama8b_forecast.py \
   --output tampa_test_final_predictions1.csv \
   --city tampa \
   --batch-size 64 \
-  --generate-reports
-
+  --generate-reports 
+``` 
 ---
 
 ## 📈 Results: Mistral Variants Across Cities
