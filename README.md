@@ -1,10 +1,8 @@
 # Hurricane Ian POI Visit Forecasting (D14 Task)
 
-## 📌 Overview
-This project studies the problem of **forecasting daily visits to Points of Interest (POIs)** in Florida during **Hurricane Ian (2022)**.  
-The primary task is to **predict the 14th day’s visit count** at each POI, given the previous 13 days of observed visits.  
-
-We experiment with **classical time-series models, deep learning methods, and large language models (LLMs)**, and extend them with **fine-tuning and retrieval-augmented generation (RAG)** to incorporate hurricane-specific contextual knowledge.
+## Abstract
+Natural disasters like hurricanes cause abrupt and severe disruptions in human mobility and business activity, posing significant challenges for short-term forecasting models that support disaster response and resource allocation. Traditional statistical and deep learning approaches often fail to adapt to the context-sensitive shifts
+in visitation patterns during such events. To address these limitations, we introduce a disaster-aware mobility prediction framework that integrates large language models (LLMs) with retrieval-augmented generation (RAG). The framework uses prompting to seamlessly integrate high-resolution point-of-interest (POI)-level mobility data with geospatial contextual signals, such as evacuation orders. It also employs parameter-efficient fine-tuning to create LLMs tailored specifically for mobility forecasting tasks during disasters. Experimental results using mobility data during Hurricane Ian in four Florida cities show that the proposed LLM-based framework consistently outperforms traditional methods in most scenarios, indicating its strong ability to comprehend disrupted mobility patterns. These findings highlight the potential of integrating structured mobility data with contextual language comprehension to foster more resilient and adaptable forecasts in disaster situations. 
 
 ---
 
@@ -23,32 +21,6 @@ We experiment with **classical time-series models, deep learning methods, and la
     v^p_k \\quad (n=14)
     \\]
 
----
-
-## ⚙️ Methods
-We compared multiple approaches:  
-
-1. **Classical Models**  
-   - ARIMA  
-   - Prophet  
-
-2. **Deep Learning Models**  
-   - LSTM  
-   - RNN
-   - GRU
-
-3. **Large Language Models (LLMs)**  
-   - Zero/few-shot forecasting with LLaMA-3.1-8B and Mistral-7B  
-   - Fine-tuning with **LoRA** adapters for D14 forecasting  
-   - **RAG-enhanced prompts** using hurricane-specific evacuation and landfall context  
-
----
-
-## 🧪 Key Findings
-- **Classical & deep models** perform reasonably but fail to adapt well when hurricane disruptions change visit patterns.  
-- **LLMs without fine-tuning** show limited accuracy.  
-- **Fine-tuned LLMs (LoRA)** substantially improve D14 predictions.  
-- **RAG-enhanced prompts** (e.g., “Evacuation order announced 2 days ago”) allow LLMs to incorporate real-world context and further boost accuracy.  
 
 ---
 
@@ -74,53 +46,7 @@ We compared multiple approaches:
 
 This document describes how each training or inference instance is converted into a structured **prompt** and fed into the LLM.  
 
----
-
-# Sample Data Instance
-
-This example illustrates a single **train/test record** in the hurricane mobility forecasting dataset.
-
----
-
-## Metadata
-- **Placekey**: `zzw-226@8dj-jy9-x89`  
-- **City**: Tampa  
-- **Location Name**: Gr8Physiques Fitness Solutions  
-- **Top Category**: Other Amusement and Recreation Industries  
-- **Latitude**: 28.004637  
-- **Longitude**: -82.59652  
-
----
-
-## Temporal Information
-- **Series Start Date**: 2022-09-19  
-- **Landfall Date**: 2022-09-28  
-- **Target Date (Day 14)**: 2022-10-02  
-- **Actual Target Date**: 2022-10-02  
-- **Time Periods Used**: after; before; landfall  
-- **Target Days After Landfall**: 4  
-
----
-
-## Input Data (13-day History)
-`prev_13_values` =  
-```
-[11.0, 5.0, 9.0, 6.0, 5.0, 7.0, 3.0, 3.0, 4.0, 0.0, 0.0, 13.0, 6.0]
-```
-
----
-
-## Output Data (Ground Truth)
-- **y_true_d14**: 6.0  
-
----
-
-## RAG / Evacuation Context
-- **FIPS County Code**: 12057  
-- **County Name**: Hillsborough  
-- **Evacuation Severity**: 3 (MANDATORY evacuation)  
-- **Evacuation Days Since**: 5  
-- **RAG Active**: true  
+--- 
 
 # Prompt Generation Functions
 
@@ -195,17 +121,11 @@ PREDICTION:
 
 ---
 
-## Key Notes
-- `rag_active == True` controls whether evacuation context is inserted.  
-- **Mandatory orders** are recognized when `evacuation_severity >= 3`.  
-- Training prompts include the **answer**, inference prompts do not.  
-- Visit sequences are always shown as **13 comma-separated floats**.  
 ## 📊 Evaluation
 Metrics used:  
 - MAE (Mean Absolute Error)  
 - RMSE (Root Mean Squared Error)
 - RMSLE (Root Mean Squared Logarithmic Error)
-
 
 Outputs include per-POI error analysis, top-10 best/worst cases, and visualizations.  
 
@@ -337,10 +257,9 @@ We report the number of POIs in each category (**Count**) and the average foreca
 | Other Amusement and Recreation Industries | 120 | 3.23 |
 
 ## ✨ Contributions
-- Built a full **data preparation pipeline** for hurricane-aware POI visit forecasting.  
-- Implemented and compared **classical, deep learning, and LLM-based approaches**.  
-- Designed **generalized prompt templates** and **LoRA fine-tuning** for forecasting tasks.  
-- Incorporated **geospatial RAG knowledge** (evacuation orders, landfall dates) into LLM forecasts.  
+This study presents the following contributions.
+--We design a novel LLM-based forecasting framework that integrates structured mobility sequences with external disaster-specific context.
+-- We evaluate our framework using mobility data in Florida during Hurricane Ian, benchmarking against statistical (ARIMA and Prophet) and deep learning (RNN, LSTM, and GRU) baselines, and demonstrate improved performance in capturing disrupted visitation patterns.
 
 ---
 
