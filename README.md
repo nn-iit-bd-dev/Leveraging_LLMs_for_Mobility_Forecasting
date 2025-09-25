@@ -117,6 +117,39 @@ Outputs include per-POI error analysis, top-10 best/worst cases, and visualizati
 |            | **Mistral + LoRA + RAG** | **2.16** | **5.01**  | **0.77** |
 
 
+## Orlando – Sample Predictions: Our Framework
+
+Below are examples of the **10 best** and **10 worst** model predictions for Orlando POIs.  
+- *Best cases* are low-traffic POIs (stable, easy to predict).  
+- *Worst cases* are high-volume, event-driven POIs (airports, theme parks, tourist restaurants).  
+
+### 🔹 10 Best Predictions
+| Rank | Placekey              | Location Name                                | Category                                   | True Visits | Predicted | Abs. Error |
+|------|-----------------------|----------------------------------------------|--------------------------------------------|-------------|-----------|------------|
+| 1    | 223-222@8fy-7x8-wkz   | Orlando Auto Mall                            | Automobile Dealers                          | 0           | 0         | 0          |
+| 2    | 223-222@8fy-7yv-z9f   | Dsign Factory                                | Printing & Related Support Activities       | 0           | 0         | 0          |
+| 3    | 22y-222@8fy-7wz-m8v   | Osceola Gynecology                           | Offices of Physicians                       | 0           | 0         | 0          |
+| 4    | 222-223@8fy-7zy-rzf   | V & N Complete Auto Repair                   | Automotive Repair and Maintenance           | 0           | 0         | 0          |
+| 5    | zzy-222@8fy-8mg-cdv   | Cam Miller Realty                            | Real Estate Agents and Brokers              | 0           | 0         | 0          |
+| 6    | 222-222@8fy-82q-qfz   | Adolescent Substance Abuse Program           | Elementary & Secondary Schools              | 0           | 0         | 0          |
+| 7    | 222-222@8fy-8kf-z4v   | Sofrito Latin Cafe                           | Restaurants and Other Eating Places         | 4           | 4         | 0          |
+| 8    | 225-225@8fy-8n3-xt9   | AdventHealth Medical Group Surgery Lake Nona | Offices of Physicians                       | 0           | 0         | 0          |
+| 9    | zzy-229@8fy-8bj-835   | Bright Light Paper                           | Florists                                    | 5           | 5         | 0          |
+| 10   | 229-223@8fy-8bv-djv   | Flying Window Tinting                        | Building Finishing Contractors              | 0           | 0         | 0          |
+
+### 🔹 10 Worst Predictions
+| Rank | Placekey              | Location Name                                | Category                                   | True Visits | Predicted | Abs. Error |
+|------|-----------------------|----------------------------------------------|--------------------------------------------|-------------|-----------|------------|
+| 1    | 225-22w@8fy-7z9-2tv   | Orlando International Airport                | Support Activities for Air Transportation   | 5808        | 6544      | 736        |
+| 2    | zzw-22r@8fy-8jw-qcq   | Hagrid's Magical Creatures Motorbike Ride    | Amusement Parks and Arcades                 | 398         | 16        | 382        |
+| 3    | zzy-22c@8fy-d6k-bkz   | Woody's Lunch Box                            | Amusement Parks and Arcades                 | 318         | 40        | 278        |
+| 4    | zzy-22q@8fy-8m2-k9f   | Big Thunder Mountain Railroad                | Amusement Parks and Arcades                 | 359         | 97        | 262        |
+| 5    | zzw-223@8fy-8kn-j35   | Disney Springs                               | Lessors of Real Estate                      | 3490        | 3704      | 214        |
+| 6    | 222-235@8fy-8jx-dn5   | The Hello Kitty Shop                         | Book Stores and News Dealers                | 178         | 0         | 178        |
+| 7    | zzy-222@8fy-83t-fvf   | Dunkin'                                      | Restaurants and Other Eating Places         | 179         | 1         | 178        |
+| 8    | zzw-22j@8fy-8jw-qcq   | The Amazing Adventures of Spider-Man         | Amusement Parks and Arcades                 | 181         | 10        | 171        |
+| 9    | zzw-222@8fy-8k6-9xq   | Raptor Encounter                             | Amusement Parks and Arcades                 | 208         | 81        | 127        |
+| 10   | zzy-223@8fy-7z9-rff   | Orlando Intl Airport – Airside 2             | Support Activities for Air Transportation   | 580         | 684       | 104        |
 
 
 
