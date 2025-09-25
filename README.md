@@ -78,8 +78,6 @@ Outputs include per-POI error analysis, top-10 best/worst cases, and visualizati
 
 
 ---
-
-## 📂 Full Prompt Format for LLM Forecasting
 ```
 
 ## Full Prompt Format for LLM Forecasting
