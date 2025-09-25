@@ -76,9 +76,13 @@ Outputs include per-POI error analysis, top-10 best/worst cases, and visualizati
 ├── utilities/             # Helper functions (e.g., data loaders, metrics, plotting, I/O utils)
 └── README.md              # Project documentation
 
+
 ---
 
-# Full Prompt Format for LLM Forecasting
+## 📂 Full Prompt Format for LLM Forecasting
+```
+
+## Full Prompt Format for LLM Forecasting
 
 This document describes how each training or inference instance is converted into a structured **prompt** and fed into the LLM.  
 
