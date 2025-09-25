@@ -95,9 +95,15 @@ Outputs include per-POI error analysis, top-10 best/worst cases, and visualizati
    python arima_tampa_14.py --input ts_daily_panel/tampa_daily_panel.parquet --target d14
    ```  
 3. Run LLM inference (example with LLaMA-3.1-8B):  
-   ```bash
-   python run_llama.py --input prepared_data/tampa_test.jsonl --output results/tampa_predictions.csv
-   ```  
+   To run the forecasting pipeline with the **LLaMA-8B** model on Tampa test data:
+
+```bash
+python llama8b_forecast.py \
+  --input prepared_data/tampa_2025_09_01/data/tampa_test.jsonl \
+  --output tampa_test_final_predictions1.csv \
+  --city tampa \
+  --batch-size 64 \
+  --generate-reports
 
 ---
 
