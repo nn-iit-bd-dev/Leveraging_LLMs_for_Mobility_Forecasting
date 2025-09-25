@@ -16,12 +16,15 @@ Experimental results using mobility data during Hurricane Ian in four Florida ci
 - **Geographic scope:** Four Florida cities (Tampa, Miami, Orlando, Cape Coral)  
 - **POI metadata:** placekey, city, location name, top category, latitude, longitude  
 - **Temporal windows:** Before, during, Hurricane Ian landfall  
-- **Forecasting setup:**  
+- **Forecasting setup:**
   - **Input sequence:**  
-    \[ v^p_{k-n+1:k-1} = [v^p_{k-13}, \dots, v^p_{k-1}] \]  
+    $$
+    v^p_{k-n+1:k-1} = [v^p_{k-13}, \dots, v^p_{k-1}]
+    $$
   - **Forecast target:**  
-    \[ v^p_k \quad (n=14) \]
-
+    $$
+    v^p_k \quad (n = 14)
+    $$
 ---
 
 ## 📂 Repository Structure
