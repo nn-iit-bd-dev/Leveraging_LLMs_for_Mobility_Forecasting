@@ -155,15 +155,6 @@ PREDICTION:
 
 ## Feeding the Prompt into the LLM
 
-```python
-from transformers import pipeline
-
-generator = pipeline("text-generation", model="meta-llama/Llama-3-8b-instruct")
-
-prompt = create_rag_training_prompt(row)  # builds full prompt
-output = generator(prompt, max_new_tokens=10, temperature=0.0)
-
-print(output[0]["generated_text"])
 ```
 
 The LLM responds strictly in the format:
