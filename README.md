@@ -77,11 +77,114 @@ Outputs include per-POI error analysis, top-10 best/worst cases, and visualizati
 └── README.md              # Project documentation
 
 
+# Full Prompt Format for LLM Forecasting
+
+This document describes how each training or inference instance is converted into a structured **prompt** and fed into the LLM.  
+
+---
+
+## Prompt Structure
+
+Each prompt has **five components**:
+
+1. **Instruction Header**  
+   Fixed instruction enforcing the forecasting task and restricting output format:
+   ```text
+   You are an expert forecaster. Given 13 daily visit counts and evacuation context, predict day 14. 
+   Reply ONLY: 'PREDICTION: <number>'.
+   ```
+
+2. **Metadata Fields**  
+   Provide POI (Point of Interest) and temporal details:
+   ```text
+   Location: <location_name>
+   Category: <top_category>
+   City: <city>
+   SeriesStart: <series_start_date>
+   Landfall: <landfall_date>
+   TargetDate: <target_date_d14>
+   ```
+
+3. **Optional Evacuation Context**  
+   Added only when `rag_active == True`:
+   ```text
+   Evacuation Context: <MANDATORY|Voluntary> evacuation active (<days_since> days since effective)
+   ```
+
+4. **Observed Visits**  
+   A 13-day numeric sequence:
+   ```text
+   Visits(1-13): [v1, v2, …, v13]
+   ```
+
+5. **Answer Cue**  
+   Ensures the model outputs only the prediction:
+   ```text
+   PREDICTION:
+   ```
+
+---
+
+## Example A — With RAG (Evacuation Context)
+
+```text
+You are an expert forecaster. Given 13 daily visit counts and evacuation context, predict day 14. 
+Reply ONLY: 'PREDICTION: <number>'.
+Location: Walmart Supercenter
+Category: Retail
+City: Tampa
+SeriesStart: 2022-09-15
+Landfall: 2022-09-28
+TargetDate: 2022-09-28
+Evacuation Context: MANDATORY evacuation active (5 days since effective)
+Visits(1-13): [120, 135, 150, 160, 140, 100, 80, 70, 60, 55, 65, 75, 85]
+PREDICTION:
 ```
 
 ---
 
-## 🚀 How to Run
+## Example B — Without RAG (Pure Numeric)
+
+```text
+You are an expert forecaster. Given 13 daily visit counts and evacuation context, predict day 14. 
+Reply ONLY: 'PREDICTION: <number>'.
+Location: Starbucks
+Category: Food & Beverage
+City: Orlando
+SeriesStart: 2022-09-10
+Landfall: 2022-09-28
+TargetDate: 2022-09-24
+Visits(1-13): [200, 210, 220, 215, 205, 190, 180, 170, 160, 165, 170, 175, 180]
+PREDICTION:
+```
+
+---
+
+## Feeding the Prompt into the LLM
+
+```python
+from transformers import pipeline
+
+generator = pipeline("text-generation", model="meta-llama/Llama-3-8b-instruct")
+
+prompt = create_rag_training_prompt(row)  # builds full prompt
+output = generator(prompt, max_new_tokens=10, temperature=0.0)
+
+print(output[0]["generated_text"])
+```
+
+The LLM responds strictly in the format:
+
+```text
+PREDICTION: <number>
+```
+
+---
+
+
+---
+
+##  How to Run
 1. Prepare train/test JSONL datasets (per city or multi-city).  
 2. Run classical/deep baselines:  
    ```bash
