@@ -76,7 +76,7 @@ Outputs include per-POI error analysis, top-10 best/worst cases, and visualizati
 
 ---
 
-## 🛠 Implementation Details
+## 🛠 Implementation Details (LLM+LoRA_RAG)
 
 - **Quantized inference** with 4-bit NF4 via `bitsandbytes`.  
 - Tokenization: model’s **SentencePiece vocabulary**, with EOS as padding.  
