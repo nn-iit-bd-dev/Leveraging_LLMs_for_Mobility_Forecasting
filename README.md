@@ -88,6 +88,66 @@ Outputs include per-POI error analysis, top-10 best/worst cases, and visualizati
 
 ---
 
+## 🛠 Implementation Details (Deep Learning Models)
+
+- **Models:** RNN, LSTM, GRU with learnable **city** and **category** embeddings (dim=16 each).  
+- **Data split:** 70/10/20 (train/validation/test).  
+- **Normalization:** Input sequences standardized with `StandardScaler` (optional via `--normalize`).  
+
+- **Training:**  
+  - Hidden size = 64, Layers = 2, Dropout = 0.2  
+  - Optimizer: Adam (`lr=1e-3`)  
+  - Loss: MSE (predictions clamped ≥0, rounded to int for reporting)  
+  - Batch size = 32, Epochs = 30  
+  - Early stopping with patience = 5  
+  - LR scheduler: ReduceLROnPlateau (patience=5, factor=0.7)  
+
+- **Evaluation metrics:**  
+  MAE, RMSE, RMSLE, SMAPE (mean & median), Exact-match accuracy.  
+
+- **Best model:**  
+  Per type saved by lowest validation loss (`best_<model>.pth`).  
+
+- **Reports generated:**  
+  - Per-city metrics (`*_city_metrics.csv`)  
+  - Per-category metrics (`*_category_metrics.csv`)  
+  - Overall summary JSON (`*_summary.json`)  
+  - Dataset summary JSON (`*_dataset_summary.json`)  
+  - Combined multi-model city metrics (`all_models_city_metrics.csv`, `all_models_city_metrics_wide.csv`)  
+
+---
+
+## 🛠 Implementation Details (Classical Models:ARIMA)
+
+- **Forecast horizon:** D14 (train on days 1–13).  
+- **Model search:** up to **8 ARIMA (p,d,q)** candidates, selected by **lowest AIC**.  
+- **Fallback:** last observed value if ARIMA fails.  
+- **Prediction:** clamped [0, 10,000], rounded to integer.  
+- **Parallelization:** configurable (`--parallel`, default auto ≤8 workers).  
+- **Metrics:** MAE, RMSE, RMSLE, sMAPE (mean/median), median error.  
+- **Epochs/iterations:** single-step forecast per placekey (no retraining epochs).  
+---
+
+## 🛠 Implementation Details (Classical Models:Prophet)
+
+
+- **Horizon:** D14 (train on first **13 days**, predict day **14**).
+- **Prophet config:**
+  - `yearly_seasonality=False`
+  - `weekly_seasonality=False`
+  - `daily_seasonality=False`
+  - `changepoint_prior_scale=0.1`
+  - `seasonality_prior_scale=0.1`
+  - `interval_width=0.8`  *(80% CI)*
+  - `uncertainty_samples=100`
+- **Fallback logic:**  
+  - Constant series → last value (naive)  
+  - All zeros → 0 (naive)  
+  - Any Prophet error → last value (naive)
+- **Validation metrics:** `MAE`, `RMSE` , RMSLE, sMAPE (mean/median), median error
+- **Execution controls:** `CITIES=[Tampa, Miami, Orlando, Cape Coral]`, `--sample` not used (full data).
+
+
 ## 🚀 How to Run
 1. Prepare train/test JSONL datasets.  
 2. Run classical/deep baselines:  
